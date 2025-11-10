@@ -1,0 +1,28 @@
+---
+# Azure DevOps Pipelines
+...
+steps:
+  - displayName: Install Terraform
+    task: TerraformInstaller@0
+    inputs:
+      terraformVersion: "1.10.5"
+
+  - displayName: Run tfsec
+    task: tfsec@1
+...
+
+---
+# GitHub Actions
+...
+steps:
+  - name: Install Terraform
+    uses: hashicorp/setup-terraform@v3
+    with:
+      terraform_version: "1.10.5"
+
+  - name: Clone repo
+    uses: actions/checkout@v4
+
+  - name: Run tfsec
+    uses: aquasecurity/tfsec-action@v1
+...

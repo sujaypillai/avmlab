@@ -1,0 +1,19 @@
+---
+# Azure DevOps Pipelines
+...
+steps:
+  - task: TerraformInstaller@0
+    displayName: Install Terraform
+    inputs:
+      terraformVersion: "1.10.5"
+...
+
+---
+# GitHub Actions
+...
+steps:
+  - uses: hashicorp/setup-terraform@v3
+    name: Install Terraform
+    with:
+      terraform_version: "1.10.5"
+...

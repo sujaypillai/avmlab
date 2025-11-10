@@ -1,0 +1,61 @@
+---
+# Azure DevOps Pipelines
+...
+steps:
+  - displayName: Install Terraform
+    task: TerraformInstaller@0
+    inputs:
+      terraformVersion: "1.10.5"
+
+  - displayName: Terraform Init
+    task: TerraformTaskV4@4
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      backendServiceArm: '${{ variables.serviceConnection }}'
+      backendAzureRmResourceGroupName: '$(BACKEND_AZURE_RESOURCE_GROUP_NAME)'
+      backendAzureRmStorageAccountName: '$(BACKEND_AZURE_STORAGE_ACCOUNT_NAME)'
+      backendAzureRmContainerName: '$(BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME)'
+      backendAzureRmKey: $(BACKEND_KEY)'
+      backendAzureRmUseEnvironmentVariablesForAuthentication: true
+      backendAzureRmUseEntraIdForAuthentication: true
+
+  - displayName: Terraform Plan
+    task: TerraformTaskV4@4
+    inputs:
+      provider: 'azurerm'
+      command: 'plan'
+      commandOptions: '-out tfplan'
+      environmentServiceNameAzureRM: '${{ variables.serviceConnection }}'
+...
+
+---
+# GitHub Actions
+...
+env:
+  ARM_USE_OIDC: true
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_USE_AZUREAD: true
+
+steps:
+  - name: Install Terraform
+    uses: hashicorp/setup-terraform@v3
+    with:
+      terraform_version: "1.10.5"
+
+  - name: Clone repo
+    uses: actions/checkout@v4
+
+  - name: Terraform Init
+    run: |
+      terraform init \
+        -backend-config="resource_group_name=${{ secrets.BACKEND_RESOURCE_GROUP_NAME }}" \
+        -backend-config="storage_account_name=${{ secrets.BACKEND_STORAGE_ACCOUNT_NAME }}" \
+        -backend-config="container_name=${{ secrets.BACKEND_CONTAINER_NAME }}" \
+        -backend-config="key=${{ secrets.BACKEND_KEY }}"
+
+  - name: Terraform Plan
+    run: terraform plan -out=tfplan
+...
